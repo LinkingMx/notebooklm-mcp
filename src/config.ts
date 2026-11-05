@@ -27,6 +27,31 @@ const paths = envPaths("notebooklm-mcp", { suffix: "" });
 export const NOTEBOOKLM_AUTH_URL =
   "https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fnotebooklm.google.com%2F&flowName=GlifWebSignIn&flowEntry=ServiceLogin";
 
+/**
+ * Hosts that serve the NotebookLM app once signed in. Google moved the app from
+ * notebooklm.google.com to notebook.google.com and also serves it under
+ * gemini.google.com/notebook*.
+ */
+const NOTEBOOK_APP_HOSTS = new Set(["notebooklm.google.com", "notebook.google.com"]);
+
+/**
+ * Whether a browser URL is inside the NotebookLM app (i.e. the user is signed in).
+ */
+export function isNotebookAppUrl(url: string): boolean {
+  try {
+    const { protocol, hostname, pathname } = new URL(url);
+    if (protocol !== "https:") {
+      return false;
+    }
+    return (
+      NOTEBOOK_APP_HOSTS.has(hostname) ||
+      (hostname === "gemini.google.com" && pathname.startsWith("/notebook"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export interface Config {
   // NotebookLM - optional, used for legacy default notebook
   notebookUrl: string;
